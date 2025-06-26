@@ -5,6 +5,7 @@ from .serializers import (
     ReceiptFileUploadSerializer,
     ReceiptSerializer
 )
+from .ocr_pdf import extract_info_from_pdf
 
 
 class ReceiptFileViewSet(viewsets.ModelViewSet):
@@ -19,14 +20,17 @@ class ReceiptFileViewSet(viewsets.ModelViewSet):
         uploaded_file = self.request.FILES.get('file')
         receipt_file = serializer.save(file_name=uploaded_file.name)
 
-        # TODO validate the pdf file
-        # Validate if ends with .pdf
-        if receipt_file.file_name.lower().endswith('.pdf'):
-            receipt_file.is_valid = True
-            receipt_file.invalid_reason = ""
-        else:
-            raise serializers.ValidationError("Only PDF files are allowed.")
+        # Validate PDF
+        # try:
+        print(f"receipt_file.file.path: {receipt_file.file.path}")
+        data = extract_info_from_pdf(receipt_file.file.path)
+        print(f"data: {data}")
+        receipt_file.is_processed = True
 
-        # TODO Process PDF using OCR if valid
+        # except Exception as e:
+        #     receipt_file.is_valid = False
+        #     receipt_file.invalid_reason = str(e)
+        #     receipt_file.is_processed = False
+
         receipt_file.save()
         return

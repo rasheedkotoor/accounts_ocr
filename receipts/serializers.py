@@ -18,6 +18,15 @@ class ReceiptFileUploadSerializer(serializers.ModelSerializer):
         model = ReceiptFile
         fields = ['file']
 
+    def validate_file(self, obj):
+        if not obj.name.lower().endswith('.pdf'):
+            raise serializers.ValidationError("Only PDF files are allowed.")
+
+        if obj.content_type != 'application/pdf':
+            raise serializers.ValidationError("Uploaded file is not a valid PDF type.")
+
+        return obj
+
 
 class ReceiptFileSerializer(serializers.ModelSerializer):
     receipts = ReceiptSerializer(many=True, read_only=True)
